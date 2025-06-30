@@ -1,5 +1,7 @@
 * {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
@@ -11,7 +13,24 @@ body {
 
 h1 {
   font-weight: bold;
-  
+  text-align: center;
+}
+
+#main-content {
+  margin-top: 15px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.secondary-content{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.shared-class {
+  margin: 7px 0;
 }
 
 p {
@@ -56,4 +75,30 @@ code {
   font-size: 1.2em;
   background-color: #FFFEC4;
   padding: 2px;
+}
+
+
+@media screen and (max-width: 600px) {
+  body {
+    margin: 10px;
+  }
+
+  #main-content {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  form {
+    width: 100%;
+    max-width: none;
+  }
+  
+  input[type=submit] {
+    width: 100%;
+  }
+  
+  .secondary-content {
+    width: 100%;
+  }
+  
 }
