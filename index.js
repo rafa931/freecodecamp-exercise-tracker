@@ -35,7 +35,7 @@ app.get('/api/users', function (req, res) {
 
 
 // logs all exercises for a use 
-app.get('/api/users/:_id/logs/:from?/:to?/:limit?', function (req, res) {
+app.get('/api/users/:_id/logs', function (req, res) {
   // check is user exists
   let check = false;
   let userName;
@@ -63,42 +63,46 @@ app.get('/api/users/:_id/logs/:from?/:to?/:limit?', function (req, res) {
   if (!check_exerc) {
     return res.status(404).json({ "error": "No exercises found for this user" });
   }
-
-  // if there are exercises, filter them by date and limit
   let filteredExercises = exercisesDb.filter(exercise => exercise._id === req.params._id);
 
-  if (req.params.from) {
-    const fromDate = new Date(req.params.from);
+  // Apply date filtering
+  if (req.query.from) {
+    const fromDate = new Date(req.query.from);
     if (isNaN(fromDate.getTime())) {
       return res.status(400).json({ error: 'Invalid from date format' });
     }
-    if (req.params.to) {
-      const toDate = new Date(req.params.to);
-      if (isNaN(toDate.getTime())) {
-        return res.status(400).json({ error: 'Invalid to date format' });
-      }
-      filteredExercises = filteredExercises.filter(exercise => toDate >= fromDate);
-    }
     filteredExercises = filteredExercises.filter(exercise => new Date(exercise.date) >= fromDate);
-
-    if (req.params.limit) {
-      const limit = parseInt(req.params.limit);
-      if (isNaN(limit) || limit <= 0) {
-        return res.status(400).json({ error: 'Invalid limit' });
-      }
-      filteredExercises = filteredExercises.slice(0, limit);
-    }
   }
 
-  // send response 
-  console.log(`Logs retrieved for user ${userName}:`, filteredExercises);
-  res.json({_id: req.params._id, username: userName, count: filteredExercises.length, log: filteredExercises });
+  if (req.query.to) {
+    const toDate = new Date(req.query.to);
+    if (isNaN(toDate.getTime())) {
+      return res.status(400).json({ error: 'Invalid to date format' });
+    }
+    filteredExercises = filteredExercises.filter(exercise => new Date(exercise.date) <= toDate);
+  }
+
+  // Apply limit
+  if (req.query.limit) {
+    const limit = parseInt(req.query.limit);
+    if (isNaN(limit) || limit <= 0) {
+      return res.status(400).json({ error: 'Invalid limit' });
+    }
+    filteredExercises = filteredExercises.slice(0, limit);
+  }
+
+
+  const logArray = filteredExercises.map(exercise => ({
+    description: exercise.description,
+    duration: exercise.duration,
+    date: exercise.date
+  }));  // send response 
+  console.log(`Logs retrieved for user ${userName}:`, logArray);
+  res.json({username: userName, count: filteredExercises.length, _id: req.params._id, log: logArray });
 });
 
 
-// add an exercise to a user
 app.post('/api/users/:_id/exercises', function (req, res) {
-  // fisrt check if use is on database 
   if (!usersDb.some(user => user._id === req.params._id)) {
     return res.status(404).json({ error: 'User not found' });
   }
